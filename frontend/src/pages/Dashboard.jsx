@@ -121,7 +121,7 @@ export default function Dashboard() {
             + Add Laboratory
           </Link>
           <Link to="/scheduler" className="px-3.5 py-1.5 text-xs bg-bright text-white font-medium rounded hover:opacity-90 transition-colors shadow-sm">
-            ⚡ Auto Allocate / Create Schedule
+            Auto Allocate / Create Schedule
           </Link>
           <Link to="/schedule" className="px-3 py-1.5 text-xs bg-steel text-white rounded hover:bg-steel-dark transition-colors">
             View Schedule

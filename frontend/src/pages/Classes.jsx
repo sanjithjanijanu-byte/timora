@@ -352,9 +352,9 @@ export default function Classes({ initialTab }) {
           </button>
           <button
             onClick={() => openAutoBatch()}
-            className="px-3.5 py-1.5 text-xs bg-emerald-600 text-white font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-1"
+            className="px-3.5 py-1.5 text-xs bg-emerald-600 text-white font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm"
           >
-            <span>⚡</span> Auto Generate Batches
+            Auto Generate Batches
           </button>
         </div>
       </div>
@@ -420,7 +420,7 @@ export default function Classes({ initialTab }) {
               : 'border-transparent text-mid hover:text-navy hover:border-gray-300'
           }`}
         >
-          <span>🎓 Classes & Sections</span>
+          <span>Classes & Sections</span>
           <span className="text-xs bg-gray-200 text-gray-700 rounded-full px-2 py-0.5">
             {classes.length} / {sections.length}
           </span>
@@ -434,7 +434,7 @@ export default function Classes({ initialTab }) {
               : 'border-transparent text-mid hover:text-navy hover:border-gray-300'
           }`}
         >
-          <span>👥 Batches Management</span>
+          <span>Batches Management</span>
           <span className="text-xs bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 font-semibold">
             {batches.length}
           </span>
@@ -448,7 +448,7 @@ export default function Classes({ initialTab }) {
               : 'border-transparent text-mid hover:text-navy hover:border-gray-300'
           }`}
         >
-          <span>🌳 Structure Hierarchy</span>
+          <span>Structure Hierarchy</span>
         </button>
       </div>
 
@@ -553,9 +553,9 @@ export default function Classes({ initialTab }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => openAutoBatch()}
-                className="px-3 py-1.5 text-xs bg-emerald-600 text-white font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-1"
+                className="px-3 py-1.5 text-xs bg-emerald-600 text-white font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm"
               >
-                <span>⚡</span> Auto Generate
+                Auto Generate
               </button>
               <button
                 onClick={() => openAddBatch()}
@@ -705,7 +705,7 @@ export default function Classes({ initialTab }) {
                                     </p>
                                     {secBatches.length === 0 ? (
                                       <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                                        ⚠️ No batches generated
+                                        No batches generated
                                       </p>
                                     ) : (
                                       <div className="flex flex-wrap gap-1.5">
@@ -725,9 +725,9 @@ export default function Classes({ initialTab }) {
                                 <div className="pt-2 border-t border-border flex items-center justify-between">
                                   <button
                                     onClick={() => openAutoBatch(sec.id)}
-                                    className="text-xs text-emerald-700 hover:text-emerald-900 font-medium flex items-center gap-0.5"
+                                    className="text-xs text-emerald-700 hover:text-emerald-900 font-medium"
                                   >
-                                    <span>⚡</span> Auto-Batch
+                                    Auto-Batch
                                   </button>
                                   <button
                                     onClick={() => openAddBatch(sec.id)}
@@ -1050,9 +1050,9 @@ function UnifiedSectionRow({
             <button
               onClick={onAutoBatch}
               title="Auto Generate Batches for this Section"
-              className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors ml-1"
+              className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors ml-1 font-medium"
             >
-              ⚡ Auto
+              Auto
             </button>
             <button
               onClick={onAddBatch}

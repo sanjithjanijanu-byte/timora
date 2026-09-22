@@ -283,7 +283,7 @@ export default function AutoScheduler() {
                       </ul>
                       {u.session_number > 1 && (
                         <div className="mt-2 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded p-2">
-                          💡 <strong>Why is Session {u.session_number} requested?</strong> In <em>Subjects</em>, <strong>{subLabel}</strong> has <em>Sessions Required</em> set to <strong>{sub?.sessions_required || u.session_number}</strong>. If each batch only takes this practical exam <strong>once</strong>, go to <a href="/subjects" className="underline font-semibold text-steel">Subjects</a> and change <em>Sessions Required</em> to <strong>1</strong>.
+                          <span className="font-semibold text-amber-800 mr-1">Note:</span> <strong>Why is Session {u.session_number} requested?</strong> In <em>Subjects</em>, <strong>{subLabel}</strong> has <em>Sessions Required</em> set to <strong>{sub?.sessions_required || u.session_number}</strong>. If each batch only takes this practical exam <strong>once</strong>, go to <a href="/subjects" className="underline font-semibold text-steel">Subjects</a> and change <em>Sessions Required</em> to <strong>1</strong>.
                         </div>
                       )}
                     </div>
