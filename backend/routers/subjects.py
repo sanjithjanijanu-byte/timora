@@ -11,9 +11,83 @@ from schemas.subject import (
     SubjectOut,
     SectionCoordinatorItem,
     SectionCoordinatorUpdate,
+    TeachingSectionSummary,
 )
 
 router = APIRouter(prefix="/api/subjects", tags=["Subjects"])
+
+
+def _build_coordinator_list(subj: Subject, db: Session) -> list[SectionCoordinatorItem]:
+    """Helper to return all sections with their specific or default coordinator for a subject."""
+    sections_query = db.query(Section).join(Class, Section.class_id == Class.id)
+    if subj.department_id:
+        dept_sections = sections_query.filter(Class.department_id == subj.department_id).all()
+        sections = dept_sections if dept_sections else sections_query.all()
+    else:
+        sections = sections_query.all()
+
+    coord_rows = db.query(SubjectSectionCoordinator).filter(
+        SubjectSectionCoordinator.subject_id == subj.id
+    ).all()
+    coord_map = {c.section_id: c for c in coord_rows}
+
+    items = []
+    for sec in sections:
+        cls = sec.parent_class
+        dept = cls.department if cls else None
+        coord = coord_map.get(sec.id)
+
+        if coord and coord.faculty_id and coord.faculty:
+            fac = coord.faculty
+            items.append(SectionCoordinatorItem(
+                section_id=sec.id,
+                section_name=sec.name,
+                class_id=sec.class_id,
+                class_name=cls.name if cls else f"Class {sec.class_id}",
+                year_semester=cls.year_semester if cls else None,
+                department_id=dept.id if dept else None,
+                department_name=dept.name if dept else None,
+                student_count=sec.student_count or 0,
+                faculty_id=fac.id,
+                faculty_name=fac.name,
+                faculty_id_code=fac.faculty_id_code,
+                is_custom=True,
+            ))
+        else:
+            default_fac = subj.assigned_faculty
+            items.append(SectionCoordinatorItem(
+                section_id=sec.id,
+                section_name=sec.name,
+                class_id=sec.class_id,
+                class_name=cls.name if cls else f"Class {sec.class_id}",
+                year_semester=cls.year_semester if cls else None,
+                department_id=dept.id if dept else None,
+                department_name=dept.name if dept else None,
+                student_count=sec.student_count or 0,
+                faculty_id=default_fac.id if default_fac else None,
+                faculty_name=default_fac.name if default_fac else None,
+                faculty_id_code=default_fac.faculty_id_code if default_fac else None,
+                is_custom=False,
+            ))
+    return items
+
+
+def _build_teaching_sections(subj: Subject, db: Session) -> list[TeachingSectionSummary]:
+    coord_items = _build_coordinator_list(subj, db)
+    return [
+        TeachingSectionSummary(
+            section_id=c.section_id,
+            section_name=c.section_name,
+            class_id=c.class_id,
+            class_name=c.class_name,
+            year_semester=c.year_semester,
+            coordinator_id=c.faculty_id,
+            coordinator_name=c.faculty_name,
+            coordinator_code=c.faculty_id_code,
+            is_custom=c.is_custom,
+        )
+        for c in coord_items
+    ]
 
 
 @router.get("", response_model=list[SubjectOut])
@@ -32,6 +106,7 @@ def list_subjects(department_id: int | None = None, db: Session = Depends(get_db
             SubjectSectionCoordinator.subject_id == s.id,
             SubjectSectionCoordinator.faculty_id != None
         ).count()
+        out.teaching_sections = _build_teaching_sections(s, db)
         result.append(out)
     return result
 
@@ -48,6 +123,7 @@ def get_subject(subj_id: int, db: Session = Depends(get_db)):
         SubjectSectionCoordinator.subject_id == s.id,
         SubjectSectionCoordinator.faculty_id != None
     ).count()
+    out.teaching_sections = _build_teaching_sections(s, db)
     return out
 
 
@@ -65,6 +141,7 @@ def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
     out.department_name = dept.name
     out.faculty_name = subj.assigned_faculty.name if subj.assigned_faculty else None
     out.coordinators_count = 0
+    out.teaching_sections = _build_teaching_sections(subj, db)
     return out
 
 
@@ -84,6 +161,7 @@ def update_subject(subj_id: int, data: SubjectUpdate, db: Session = Depends(get_
         SubjectSectionCoordinator.subject_id == subj.id,
         SubjectSectionCoordinator.faculty_id != None
     ).count()
+    out.teaching_sections = _build_teaching_sections(subj, db)
     return out
 
 
@@ -97,64 +175,6 @@ def delete_subject(subj_id: int, db: Session = Depends(get_db)):
 
 
 # ── Section Coordinators for Subject ──────────────────────────────────────────
-
-def _build_coordinator_list(subj: Subject, db: Session) -> list[SectionCoordinatorItem]:
-    """Helper to return all sections with their specific or default coordinator for a subject."""
-    # Find all sections belonging to classes in this subject's department, or all if none
-    sections_query = db.query(Section).join(Class, Section.class_id == Class.id)
-    if subj.department_id:
-        dept_sections = sections_query.filter(Class.department_id == subj.department_id).all()
-        sections = dept_sections if dept_sections else sections_query.all()
-    else:
-        sections = sections_query.all()
-
-    # Load custom coordinators map
-    coord_rows = db.query(SubjectSectionCoordinator).filter(
-        SubjectSectionCoordinator.subject_id == subj.id
-    ).all()
-    coord_map = {c.section_id: c for c in coord_rows}
-
-    items = []
-    for sec in sections:
-        cls = sec.parent_class
-        dept = cls.department if cls else None
-        coord = coord_map.get(sec.id)
-
-        if coord and coord.faculty_id and coord.faculty:
-            # Custom section coordinator assigned
-            fac = coord.faculty
-            items.append(SectionCoordinatorItem(
-                section_id=sec.id,
-                section_name=sec.name,
-                class_id=sec.class_id,
-                class_name=cls.name if cls else f"Class {sec.class_id}",
-                year_semester=cls.year_semester if cls else None,
-                department_id=dept.id if dept else None,
-                department_name=dept.name if dept else None,
-                student_count=sec.student_count or 0,
-                faculty_id=fac.id,
-                faculty_name=fac.name,
-                faculty_id_code=fac.faculty_id_code,
-                is_custom=True,
-            ))
-        else:
-            # Inherit default subject coordinator (if any)
-            default_fac = subj.assigned_faculty
-            items.append(SectionCoordinatorItem(
-                section_id=sec.id,
-                section_name=sec.name,
-                class_id=sec.class_id,
-                class_name=cls.name if cls else f"Class {sec.class_id}",
-                year_semester=cls.year_semester if cls else None,
-                department_id=dept.id if dept else None,
-                department_name=dept.name if dept else None,
-                student_count=sec.student_count or 0,
-                faculty_id=default_fac.id if default_fac else None,
-                faculty_name=default_fac.name if default_fac else None,
-                faculty_id_code=default_fac.faculty_id_code if default_fac else None,
-                is_custom=False,
-            ))
-    return items
 
 
 @router.get("/{subj_id}/coordinators", response_model=list[SectionCoordinatorItem])

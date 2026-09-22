@@ -796,13 +796,10 @@ export default function Classes({ initialTab }) {
               <option value="2 Year - 4 Sem">2 Year - 4 Sem</option>
               <option value="3 Year - 5 Sem">3 Year - 5 Sem</option>
               <option value="3 Year - 6 Sem">3 Year - 6 Sem</option>
-              <option value="4 Year - 7 Sem">4 Year - 7 Sem</option>
-              <option value="4 Year - 8 Sem">4 Year - 8 Sem</option>
               {classForm.year_semester && ![
                 '1 Year - 1 Sem', '1 Year - 2 Sem',
                 '2 Year - 3 Sem', '2 Year - 4 Sem',
-                '3 Year - 5 Sem', '3 Year - 6 Sem',
-                '4 Year - 7 Sem', '4 Year - 8 Sem'
+                '3 Year - 5 Sem', '3 Year - 6 Sem'
               ].includes(classForm.year_semester) && (
                 <option value={classForm.year_semester}>{classForm.year_semester} (Existing)</option>
               )}

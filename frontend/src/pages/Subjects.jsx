@@ -202,18 +202,57 @@ export default function Subjects() {
   const columns = [
     { key: 'name', label: 'Subject Name' },
     { key: 'code', label: 'Code' },
+    {
+      key: 'teaching_sections',
+      label: 'Teaching Class Sections & Main In-Charge',
+      render: (_, row) => {
+        const sections = row.teaching_sections || [];
+        if (sections.length === 0) {
+          return <span className="text-mid italic text-xs">No class sections</span>;
+        }
+        return (
+          <div className="flex flex-col gap-1.5 py-1">
+            {sections.map((ts) => (
+              <div
+                key={ts.section_id}
+                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-ice/80 text-navy border border-border rounded-md"
+              >
+                <span className="font-semibold text-steel">{ts.class_name}</span>
+                <span className="font-medium bg-white px-1.5 py-0.5 rounded border border-border text-[11px]">
+                  Sec {ts.section_name}
+                </span>
+                {ts.year_semester && (
+                  <span className="text-[10px] text-mid bg-ghost px-1 rounded">
+                    {ts.year_semester}
+                  </span>
+                )}
+                <span className="text-border">|</span>
+                <span className="text-[11px]">
+                  Main In-Charge:{' '}
+                  {ts.coordinator_name ? (
+                    <strong className="text-navy">{ts.coordinator_name}</strong>
+                  ) : (
+                    <span className="text-mid italic">Unassigned</span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+      },
+    },
     { key: 'sessions_required', label: 'Sessions' },
     { key: 'duration_minutes', label: 'Duration (min)', render: (v) => `${v} min` },
     { key: 'required_lab_type', label: 'Lab Type / Laboratory', render: (v) => v || '—' },
     {
       key: 'faculty_name',
-      label: 'Main Coordinator',
+      label: 'Default Coordinator',
       render: (v) => v || <span className="text-mid italic">Unassigned</span>,
     },
     { key: 'department_name', label: 'Department' },
     {
       key: 'actions_coordinators',
-      label: 'Class & Section Table',
+      label: 'Manage In-Charges',
       render: (_, row) => (
         <button
           onClick={() => {
@@ -222,7 +261,7 @@ export default function Subjects() {
           }}
           className="text-xs px-2.5 py-1 rounded bg-ice border border-border text-navy hover:bg-ghost font-medium transition-colors inline-flex items-center gap-1.5"
         >
-          <span>Section Table</span>
+          <span>Class &amp; Section Table</span>
           <span className="px-1.5 py-0.2 bg-white border border-border rounded text-[11px] font-semibold text-steel">
             {row.coordinators_count || 0}
           </span>
@@ -329,7 +368,7 @@ export default function Subjects() {
               {selectedSubject && (
                 <div className="flex items-center gap-2 self-start md:self-auto text-xs bg-ghost border border-border rounded-md px-3 py-2">
                   <div>
-                    <span className="text-mid font-medium">Main Coordinator:</span>{' '}
+                    <span className="text-mid font-medium">Default Coordinator:</span>{' '}
                     <strong className="text-navy">
                       {selectedSubject.faculty_name || 'Unassigned'}
                     </strong>
@@ -342,17 +381,46 @@ export default function Subjects() {
                 </div>
               )}
             </div>
+
+            {/* Teaching Class Sections Summary */}
+            {selectedSubject && selectedSubject.teaching_sections && selectedSubject.teaching_sections.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <p className="text-xs font-semibold text-mid uppercase tracking-wide mb-1.5">
+                  Teaching Class Sections for this Subject ({selectedSubject.teaching_sections.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedSubject.teaching_sections.map((ts) => (
+                    <div
+                      key={ts.section_id}
+                      className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-ice text-navy border border-border rounded-md"
+                    >
+                      <span className="font-semibold text-navy">{ts.class_name}</span>
+                      <span className="bg-white border border-border rounded px-1.5 py-0.5 text-[11px] font-medium">
+                        Sec {ts.section_name}
+                      </span>
+                      <span className="text-[11px] text-mid">
+                        Main In-Charge:{' '}
+                        {ts.coordinator_name ? (
+                          <strong className="text-navy">{ts.coordinator_name}</strong>
+                        ) : (
+                          <span className="italic">Unassigned</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Description Banner */}
           <div className="bg-ice/60 border border-border rounded-lg p-4 text-xs text-navy flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-sm text-navy mb-0.5">
-                Class &amp; Section Subject Coordinators Table
+                Class Practical Main In-Charge Assignment Table
               </p>
               <p className="text-mid">
-                For the same subject, each class and section can have different subject coordinators.
-                Timora&apos;s scheduler will prioritize each section&apos;s assigned coordinator during lab practical exam allocation.
+                For each subject and class section, the coordinator selected below will be strictly allotted as the <strong>Main In-Charge</strong> for that class practical exam session.
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -396,7 +464,7 @@ export default function Subjects() {
                     <th className="px-4 py-3 text-left">Year / Semester</th>
                     <th className="px-4 py-3 text-left">Section</th>
                     <th className="px-4 py-3 text-left">Students</th>
-                    <th className="px-4 py-3 text-left">Assigned Subject Coordinator</th>
+                    <th className="px-4 py-3 text-left">Allotted Main In-Charge (Coordinator)</th>
                     <th className="px-4 py-3 text-left">Status</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -447,11 +515,11 @@ export default function Subjects() {
                         <td className="px-4 py-3">
                           {isCustomNow ? (
                             <span className="inline-flex items-center text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full font-medium">
-                              Section Incharge
+                              Main In-Charge (Section)
                             </span>
                           ) : (
                             <span className="inline-flex items-center text-[11px] px-2 py-0.5 bg-ghost text-mid border border-border rounded-full font-medium">
-                              Default Inherited
+                              Main In-Charge (Default)
                             </span>
                           )}
                         </td>

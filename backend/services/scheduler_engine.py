@@ -156,32 +156,40 @@ def generate_schedule(
                 if not valid_labs:
                     continue
 
-                # Find candidate In-Charge
-                # Priority: The subject's assigned coordinator is prioritized (+50,000 score bonus).
-                # Fallback: If coordinator is busy in this slot or reached maximum workload,
-                # eligible available faculty can be assigned to allow parallel labs or multi-session slots.
+                # Find candidate Main In-Charge
+                # Requirement: The selected coordinator for this particular class practical MUST be allotted as Main In-Charge
                 incharge_candidates = []
                 if assigned_faculty_id and assigned_faculty_id in faculty_by_id:
                     fac = faculty_by_id[assigned_faculty_id]
-                    if (fac.id not in faculty_schedule.get(slot_key, set())) and (faculty_load[fac.id] < faculty_max.get(fac.id, 5)):
+                    # If coordinator is occupied in this slot, skip to find a slot where coordinator is free
+                    if fac.id not in faculty_schedule.get(slot_key, set()):
                         incharge_candidates.append(fac)
+                else:
+                    # Only when no coordinator was designated do we draw from the general faculty pool
+                    incharge_candidates = [
+                        f for f in faculty_pool
+                        if f.id not in faculty_schedule.get(slot_key, set())
+                        and faculty_load[f.id] < faculty_max.get(f.id, 5)
+                    ]
 
-                fallback_facs = [
-                    f for f in faculty_pool
-                    if f.id != assigned_faculty_id
-                    and f.id not in faculty_schedule.get(slot_key, set())
-                    and faculty_load[f.id] < faculty_max.get(f.id, 5)
-                ]
-                incharge_candidates.extend(fallback_facs)
+                if not incharge_candidates:
+                    continue
 
                 for incharge in incharge_candidates:
-                    # Find candidate Co-In-Charge (R10: co != incharge, R3: not occupied, R7: load < max)
+                    # Find candidate Co-In-Charge (R10: co != incharge, R3: not occupied)
                     co_candidates = [
                         f for f in faculty_pool
                         if f.id != incharge.id
                         and f.id not in faculty_schedule.get(slot_key, set())
                         and faculty_load[f.id] < faculty_max.get(f.id, 5)
                     ]
+                    if not co_candidates:
+                        # Allow co-in-charge if needed to satisfy scheduling requirements
+                        co_candidates = [
+                            f for f in faculty_pool
+                            if f.id != incharge.id
+                            and f.id not in faculty_schedule.get(slot_key, set())
+                        ]
                     if not co_candidates:
                         continue
 
