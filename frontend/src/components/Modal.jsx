@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="fixed inset-0 z-[100] w-full max-w-lg rounded-md border border-border bg-white p-0 shadow-lg backdrop:bg-black/30"
+      className={`fixed inset-0 z-[100] w-full ${maxWidth} rounded-md border border-border bg-white p-0 shadow-lg backdrop:bg-black/30`}
     >
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <h2 className="text-base font-semibold text-navy">{title}</h2>

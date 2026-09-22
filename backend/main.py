@@ -32,6 +32,13 @@ with engine.connect() as conn:
         conn.execute(text("ALTER TABLE subjects ADD COLUMN faculty_id INTEGER REFERENCES faculty(id);"))
         conn.commit()
 
+    # Ensure batch_id column exists in subject_section_coordinators table
+    res_coord = conn.execute(text("PRAGMA table_info(subject_section_coordinators);")).fetchall()
+    coord_cols = [row[1] for row in res_coord]
+    if "batch_id" not in coord_cols:
+        conn.execute(text("ALTER TABLE subject_section_coordinators ADD COLUMN batch_id INTEGER REFERENCES batches(id);"))
+        conn.commit()
+
 
 def seed_initial_data():
     from database import SessionLocal

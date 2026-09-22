@@ -202,45 +202,6 @@ export default function Subjects() {
   const columns = [
     { key: 'name', label: 'Subject Name' },
     { key: 'code', label: 'Code' },
-    {
-      key: 'teaching_sections',
-      label: 'Teaching Class Sections & Main In-Charge',
-      render: (_, row) => {
-        const sections = row.teaching_sections || [];
-        if (sections.length === 0) {
-          return <span className="text-mid italic text-xs">No class sections</span>;
-        }
-        return (
-          <div className="flex flex-col gap-1.5 py-1">
-            {sections.map((ts) => (
-              <div
-                key={ts.section_id}
-                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-ice/80 text-navy border border-border rounded-md"
-              >
-                <span className="font-semibold text-steel">{ts.class_name}</span>
-                <span className="font-medium bg-white px-1.5 py-0.5 rounded border border-border text-[11px]">
-                  Sec {ts.section_name}
-                </span>
-                {ts.year_semester && (
-                  <span className="text-[10px] text-mid bg-ghost px-1 rounded">
-                    {ts.year_semester}
-                  </span>
-                )}
-                <span className="text-border">|</span>
-                <span className="text-[11px]">
-                  Main In-Charge:{' '}
-                  {ts.coordinator_name ? (
-                    <strong className="text-navy">{ts.coordinator_name}</strong>
-                  ) : (
-                    <span className="text-mid italic">Unassigned</span>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        );
-      },
-    },
     { key: 'sessions_required', label: 'Sessions' },
     { key: 'duration_minutes', label: 'Duration (min)', render: (v) => `${v} min` },
     { key: 'required_lab_type', label: 'Lab Type / Laboratory', render: (v) => v || '—' },
@@ -250,24 +211,6 @@ export default function Subjects() {
       render: (v) => v || <span className="text-mid italic">Unassigned</span>,
     },
     { key: 'department_name', label: 'Department' },
-    {
-      key: 'actions_coordinators',
-      label: 'Manage In-Charges',
-      render: (_, row) => (
-        <button
-          onClick={() => {
-            setSelectedSubjectId(row.id);
-            setActiveTab('coordinators');
-          }}
-          className="text-xs px-2.5 py-1 rounded bg-ice border border-border text-navy hover:bg-ghost font-medium transition-colors inline-flex items-center gap-1.5"
-        >
-          <span>Class &amp; Section Table</span>
-          <span className="px-1.5 py-0.2 bg-white border border-border rounded text-[11px] font-semibold text-steel">
-            {row.coordinators_count || 0}
-          </span>
-        </button>
-      ),
-    },
   ];
 
   if (loading) {

@@ -84,8 +84,35 @@ def generate_schedule(
         Laboratory.id.in_(lab_ids),
         Laboratory.is_available == True,  # R5
     ).order_by(Laboratory.capacity.asc()).all()
+    # Load all class/section/batch coordinators
+    from models.subject import SubjectSectionCoordinator
+    coord_rows = db.query(SubjectSectionCoordinator).all()
+    batch_coordinator_map: dict[tuple[int, int, int], int] = {
+        (c.subject_id, c.section_id, c.batch_id): c.faculty_id
+        for c in coord_rows
+        if c.faculty_id and c.batch_id is not None
+    }
+    section_coordinator_map: dict[tuple[int, int], int] = {
+        (c.subject_id, c.section_id): c.faculty_id
+        for c in coord_rows
+        if c.faculty_id and c.batch_id is None
+    }
+
+    # Ensure assigned coordinators for the scheduled subjects and sections are included in faculty pool
+    assigned_faculty_ids = set()
+    for (s_id, sec_id, b_id), f_id in batch_coordinator_map.items():
+        if s_id in subject_ids and sec_id in section_ids:
+            assigned_faculty_ids.add(f_id)
+    for (s_id, sec_id), f_id in section_coordinator_map.items():
+        if s_id in subject_ids and sec_id in section_ids:
+            assigned_faculty_ids.add(f_id)
+    for s in subjects:
+        if s.faculty_id:
+            assigned_faculty_ids.add(s.faculty_id)
+
+    effective_faculty_ids = list(set(faculty_ids) | assigned_faculty_ids)
     faculty_pool = db.query(Faculty).filter(
-        Faculty.id.in_(faculty_ids),
+        Faculty.id.in_(effective_faculty_ids),
         Faculty.is_available == True,  # R6
     ).all()
     time_slots = db.query(TimeSlot).filter(TimeSlot.id.in_(time_slot_ids)).all()
@@ -106,15 +133,6 @@ def generate_schedule(
     sorted_dates = sorted(exam_dates)
     sorted_slots = sorted(time_slots, key=lambda s: s.start_time)
 
-    # Load all section-specific coordinators
-    from models.subject import SubjectSectionCoordinator
-    coord_rows = db.query(SubjectSectionCoordinator).all()
-    section_coordinator_map: dict[tuple[int, int], int] = {
-        (c.subject_id, c.section_id): c.faculty_id
-        for c in coord_rows
-        if c.faculty_id
-    }
-
     # Build work items grouped by subject, then by session, then by batch
     # This ensures that all batches of a subject are scheduled cohesively
     work_items: list[tuple[int, int, int, int, int]] = []  # (section_id, batch_id, batch_size, subject_id, session_num)
@@ -132,8 +150,11 @@ def generate_schedule(
         best_candidate = None
         best_score = -999999
 
-        # Subject coordinator: prioritize section-specific coordinator, fallback to subject default
-        target_fac_id = section_coordinator_map.get((subject_id, section_id))
+        # Respected subject faculty for this class and batch practical:
+        # Check batch-specific first, then section-level, then subject fallback
+        target_fac_id = batch_coordinator_map.get((subject_id, section_id, batch_id))
+        if not target_fac_id:
+            target_fac_id = section_coordinator_map.get((subject_id, section_id))
         if not target_fac_id and subj and subj.faculty_id:
             target_fac_id = subj.faculty_id
         assigned_faculty_id = target_fac_id if (target_fac_id and target_fac_id in faculty_by_id) else None

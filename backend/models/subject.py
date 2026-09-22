@@ -29,9 +29,11 @@ class SubjectSectionCoordinator(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     section_id = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=False)
     faculty_id = Column(Integer, ForeignKey("faculty.id", ondelete="SET NULL"), nullable=True)
+    batch_id = Column(Integer, ForeignKey("batches.id", ondelete="CASCADE"), nullable=True)
 
     # Relationships
     subject = relationship("Subject", back_populates="section_coordinators")
     section = relationship("Section")
     faculty = relationship("Faculty")
+    batch = relationship("Batch")
 

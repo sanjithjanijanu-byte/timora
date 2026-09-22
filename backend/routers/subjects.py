@@ -27,7 +27,8 @@ def _build_coordinator_list(subj: Subject, db: Session) -> list[SectionCoordinat
         sections = sections_query.all()
 
     coord_rows = db.query(SubjectSectionCoordinator).filter(
-        SubjectSectionCoordinator.subject_id == subj.id
+        SubjectSectionCoordinator.subject_id == subj.id,
+        SubjectSectionCoordinator.batch_id.is_(None),
     ).all()
     coord_map = {c.section_id: c for c in coord_rows}
 
@@ -201,6 +202,7 @@ def update_subject_section_coordinators(
         existing = db.query(SubjectSectionCoordinator).filter(
             SubjectSectionCoordinator.subject_id == subj_id,
             SubjectSectionCoordinator.section_id == item.section_id,
+            SubjectSectionCoordinator.batch_id.is_(None),
         ).first()
 
         target_fac_id = item.faculty_id if item.faculty_id and item.faculty_id > 0 else None
@@ -215,6 +217,7 @@ def update_subject_section_coordinators(
                 db.add(SubjectSectionCoordinator(
                     subject_id=subj_id,
                     section_id=item.section_id,
+                    batch_id=None,
                     faculty_id=target_fac_id,
                 ))
 
@@ -237,6 +240,7 @@ def update_single_subject_section_coordinator(
     existing = db.query(SubjectSectionCoordinator).filter(
         SubjectSectionCoordinator.subject_id == subj_id,
         SubjectSectionCoordinator.section_id == section_id,
+        SubjectSectionCoordinator.batch_id.is_(None),
     ).first()
 
     if target_fac_id is None:
@@ -249,6 +253,7 @@ def update_single_subject_section_coordinator(
             db.add(SubjectSectionCoordinator(
                 subject_id=subj_id,
                 section_id=section_id,
+                batch_id=None,
                 faculty_id=target_fac_id,
             ))
 
