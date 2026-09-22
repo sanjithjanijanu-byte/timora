@@ -7,6 +7,7 @@ from schemas.department import DepartmentCreate, DepartmentUpdate, DepartmentOut
 router = APIRouter(prefix="/api/departments", tags=["Departments"])
 
 
+@router.get("", response_model=list[DepartmentOut])
 @router.get("/", response_model=list[DepartmentOut])
 def list_departments(db: Session = Depends(get_db)):
     return db.query(Department).all()
@@ -20,6 +21,7 @@ def get_department(dept_id: int, db: Session = Depends(get_db)):
     return dept
 
 
+@router.post("", response_model=DepartmentOut, status_code=201)
 @router.post("/", response_model=DepartmentOut, status_code=201)
 def create_department(data: DepartmentCreate, db: Session = Depends(get_db)):
     dept = Department(**data.model_dump())

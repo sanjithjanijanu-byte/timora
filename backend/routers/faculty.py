@@ -17,6 +17,7 @@ def recalculate_faculty_workloads(db: Session = Depends(get_db)):
     return {"status": "success", "workloads": loads}
 
 
+@router.get("", response_model=list[FacultyOut])
 @router.get("/", response_model=list[FacultyOut])
 def list_faculty(department_id: int | None = None, db: Session = Depends(get_db)):
     # Keep current loads accurate
@@ -44,6 +45,7 @@ def get_faculty(fac_id: int, db: Session = Depends(get_db)):
     return out
 
 
+@router.post("", response_model=FacultyOut, status_code=201)
 @router.post("/", response_model=FacultyOut, status_code=201)
 def create_faculty(data: FacultyCreate, db: Session = Depends(get_db)):
     dept = db.query(Department).filter(Department.id == data.department_id).first()

@@ -7,6 +7,7 @@ from schemas.laboratory import LaboratoryCreate, LaboratoryUpdate, LaboratoryOut
 router = APIRouter(prefix="/api/laboratories", tags=["Laboratories"])
 
 
+@router.get("", response_model=list[LaboratoryOut])
 @router.get("/", response_model=list[LaboratoryOut])
 def list_laboratories(db: Session = Depends(get_db)):
     return db.query(Laboratory).all()
@@ -20,6 +21,7 @@ def get_laboratory(lab_id: int, db: Session = Depends(get_db)):
     return lab
 
 
+@router.post("", response_model=LaboratoryOut, status_code=201)
 @router.post("/", response_model=LaboratoryOut, status_code=201)
 def create_laboratory(data: LaboratoryCreate, db: Session = Depends(get_db)):
     lab = Laboratory(**data.model_dump())

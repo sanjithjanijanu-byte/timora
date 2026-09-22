@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api", tags=["Classes & Sections"])
 # ── Classes ──────────────────────────────────────────────────────────────────
 
 @router.get("/classes", response_model=list[ClassOut])
+@router.get("/classes/", response_model=list[ClassOut])
 def list_classes(db: Session = Depends(get_db)):
     rows = db.query(Class).all()
     result = []
@@ -37,6 +38,7 @@ def get_class(cls_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/classes", response_model=ClassOut, status_code=201)
+@router.post("/classes/", response_model=ClassOut, status_code=201)
 def create_class(data: ClassCreate, db: Session = Depends(get_db)):
     dept = db.query(Department).filter(Department.id == data.department_id).first()
     if not dept:
@@ -76,6 +78,7 @@ def delete_class(cls_id: int, db: Session = Depends(get_db)):
 # ── Sections ─────────────────────────────────────────────────────────────────
 
 @router.get("/sections", response_model=list[SectionOut])
+@router.get("/sections/", response_model=list[SectionOut])
 def list_sections(class_id: int | None = None, db: Session = Depends(get_db)):
     q = db.query(Section)
     if class_id is not None:
@@ -104,6 +107,7 @@ def get_section(sec_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/sections/{sec_id}/details", response_model=SectionDetailOut)
+@router.get("/sections/{sec_id}/details/", response_model=SectionDetailOut)
 def get_section_details(sec_id: int, db: Session = Depends(get_db)):
     """Return a section with all subjects in its department and their assigned faculty."""
     s = db.query(Section).filter(Section.id == sec_id).first()
@@ -144,6 +148,7 @@ def get_section_details(sec_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/sections", response_model=SectionOut, status_code=201)
+@router.post("/sections/", response_model=SectionOut, status_code=201)
 def create_section(data: SectionCreate, db: Session = Depends(get_db)):
     cls = db.query(Class).filter(Class.id == data.class_id).first()
     if not cls:

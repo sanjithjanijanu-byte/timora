@@ -9,6 +9,7 @@ from schemas.batch import BatchCreate, BatchUpdate, BatchOut, AutoBatchRequest
 router = APIRouter(prefix="/api/batches", tags=["Batches"])
 
 
+@router.get("", response_model=list[BatchOut])
 @router.get("/", response_model=list[BatchOut])
 def list_batches(section_id: int | None = None, db: Session = Depends(get_db)):
     q = db.query(Batch)
@@ -35,6 +36,7 @@ def get_batch(batch_id: int, db: Session = Depends(get_db)):
     return out
 
 
+@router.post("", response_model=BatchOut, status_code=201)
 @router.post("/", response_model=BatchOut, status_code=201)
 def create_batch(data: BatchCreate, db: Session = Depends(get_db)):
     sec = db.query(Section).filter(Section.id == data.section_id).first()

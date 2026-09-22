@@ -89,6 +89,7 @@ def auto_generate_schedule(request: ScheduleRequest, db: Session = Depends(get_d
 # ── CRUD for individual exam schedules ───────────────────────────────────────
 
 @router.get("/schedules", response_model=list[ExamScheduleOut])
+@router.get("/schedules/", response_model=list[ExamScheduleOut])
 def list_schedules(
     date: str | None = None,
     section_id: int | None = None,

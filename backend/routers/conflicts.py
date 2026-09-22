@@ -6,6 +6,7 @@ from services.conflict_detector import detect_conflicts, auto_resolve_conflicts
 router = APIRouter(prefix="/api/conflicts", tags=["Conflicts"])
 
 
+@router.get("")
 @router.get("/")
 def list_conflicts(db: Session = Depends(get_db)):
     """Detect and return all current conflicts in the exam schedule."""

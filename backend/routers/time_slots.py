@@ -7,6 +7,7 @@ from schemas.time_slot import TimeSlotCreate, TimeSlotUpdate, TimeSlotOut
 router = APIRouter(prefix="/api/time-slots", tags=["Time Slots"])
 
 
+@router.get("", response_model=list[TimeSlotOut])
 @router.get("/", response_model=list[TimeSlotOut])
 def list_time_slots(db: Session = Depends(get_db)):
     return db.query(TimeSlot).all()
@@ -20,6 +21,7 @@ def get_time_slot(slot_id: int, db: Session = Depends(get_db)):
     return slot
 
 
+@router.post("", response_model=TimeSlotOut, status_code=201)
 @router.post("/", response_model=TimeSlotOut, status_code=201)
 def create_time_slot(data: TimeSlotCreate, db: Session = Depends(get_db)):
     slot = TimeSlot(**data.model_dump())

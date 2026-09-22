@@ -8,6 +8,7 @@ from schemas.subject import SubjectCreate, SubjectUpdate, SubjectOut
 router = APIRouter(prefix="/api/subjects", tags=["Subjects"])
 
 
+@router.get("", response_model=list[SubjectOut])
 @router.get("/", response_model=list[SubjectOut])
 def list_subjects(department_id: int | None = None, db: Session = Depends(get_db)):
     q = db.query(Subject)
@@ -34,6 +35,7 @@ def get_subject(subj_id: int, db: Session = Depends(get_db)):
     return out
 
 
+@router.post("", response_model=SubjectOut, status_code=201)
 @router.post("/", response_model=SubjectOut, status_code=201)
 def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
     dept = db.query(Department).filter(Department.id == data.department_id).first()
