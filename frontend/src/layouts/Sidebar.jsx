@@ -4,8 +4,7 @@ import api from '../api/client';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: 'grid' },
-  { label: 'Classes', path: '/classes', icon: 'book' },
-  { label: 'Batches', path: '/batches', icon: 'users' },
+  { label: 'Classes & Batches', path: '/classes', icon: 'book' },
   { label: 'Subjects', path: '/subjects', icon: 'flask' },
   { label: 'Faculty', path: '/faculty', icon: 'user-tie' },
   { label: 'Laboratories', path: '/laboratories', icon: 'desktop' },
