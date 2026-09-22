@@ -59,8 +59,8 @@ export default function Dashboard() {
           </div>
           <p className="text-sm text-red-700 mb-4">{error}</p>
           <div className="text-xs text-red-600 mb-4 space-y-1">
-            <p>• Make sure the backend server is running on <code className="bg-red-100 px-1 py-0.5 rounded font-mono">http://127.0.0.1:8000</code></p>
-            <p>• Check if the API docs are accessible at <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer" className="underline font-semibold">http://127.0.0.1:8000/docs</a></p>
+            <p>• Make sure the backend API is reachable at <code className="bg-red-100 px-1 py-0.5 rounded font-mono">/api/dashboard/stats</code></p>
+            <p>• Check if the API docs are accessible at <a href="/docs" target="_blank" rel="noreferrer" className="underline font-semibold">/docs</a></p>
           </div>
           <button
             onClick={loadData}

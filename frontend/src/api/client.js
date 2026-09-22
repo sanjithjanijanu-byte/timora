@@ -1,7 +1,5 @@
-// Use Vite proxy or explicit IPv4 127.0.0.1 to avoid Windows IPv6 (::1) localhost resolution timeouts
-export const API_BASE = (typeof window !== 'undefined' && window.location.port === '5173')
-  ? '/api'
-  : 'http://127.0.0.1:8000/api';
+// Always use relative /api in production and development (proxied by Vite)
+export const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function request(path, options = {}) {
   const url = `${API_BASE}${path}`;

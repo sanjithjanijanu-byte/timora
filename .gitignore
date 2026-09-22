@@ -32,6 +32,7 @@ Thumbs.db
 .env.local
 *.log
 
-# SQLite Temporary Files
+# SQLite Temporary & Local Database Files
+*.db
 *.db-journal
 *.db-wal

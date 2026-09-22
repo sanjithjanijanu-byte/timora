@@ -157,18 +157,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS — allow the Vite dev server on any localhost port (5173, 5174, etc.)
+# CORS — allow Vite dev server, local origins, and production cloud domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:5175",
-        "http://127.0.0.1:5175",
-    ],
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -191,41 +183,6 @@ app.include_router(scheduler.router)
 app.include_router(conflicts.router)
 app.include_router(export.router)
 
-# Determine frontend dist path
-BASE_DIR = Path(__file__).resolve().parent
-DIST_CANDIDATES = [
-    BASE_DIR / "static",
-    BASE_DIR.parent / "frontend" / "dist",
-    BASE_DIR / "frontend" / "dist",
-]
-frontend_dist = next((p for p in DIST_CANDIDATES if p.is_dir() and (p / "index.html").is_file()), None)
-
-if frontend_dist:
-    assets_dir = frontend_dist / "assets"
-    if assets_dir.is_dir():
-        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
-
-    @app.get("/")
-    def serve_spa_root():
-        return FileResponse(frontend_dist / "index.html")
-
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # Don't intercept API or docs routes
-        if full_path.startswith("api/") or full_path in ("docs", "openapi.json", "redoc"):
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Not Found")
-
-        file_path = frontend_dist / full_path
-        if full_path and file_path.is_file():
-            return FileResponse(file_path)
-        return FileResponse(frontend_dist / "index.html")
-else:
-    @app.get("/")
-    def root():
-        return {"message": "Timora API is running", "docs": "/docs"}
-
-
 @app.get("/api/dashboard/stats")
 def dashboard_stats():
     """Aggregate statistics for the admin dashboard."""
@@ -245,7 +202,7 @@ def dashboard_stats():
         total_batches = db.query(Batch).count()
         total_subjects = db.query(Subject).count()
         total_faculty = db.query(FacultyModel).count()
-        total_labs = db.query(Laboratory).count()
+        total_laboratories = db.query(Laboratory).count()
         scheduled = db.query(ExamSchedule).filter(ExamSchedule.status == "scheduled").count()
         total_exams = db.query(ExamSchedule).count()
 
@@ -272,7 +229,7 @@ def dashboard_stats():
             "total_batches": total_batches,
             "total_subjects": total_subjects,
             "total_faculty": total_faculty,
-            "total_laboratories": total_labs,
+            "total_laboratories": total_laboratories,
             "scheduled_exams": scheduled,
             "total_exams": total_exams,
             "available_lab_capacity": total_lab_capacity,
@@ -281,6 +238,41 @@ def dashboard_stats():
         }
     finally:
         db.close()
+
+
+# ── Frontend SPA & Static File Serving (Must be registered LAST) ─────────────
+BASE_DIR = Path(__file__).resolve().parent
+DIST_CANDIDATES = [
+    BASE_DIR / "static",
+    BASE_DIR.parent / "frontend" / "dist",
+    BASE_DIR / "frontend" / "dist",
+]
+frontend_dist = next((p for p in DIST_CANDIDATES if p.is_dir() and (p / "index.html").is_file()), None)
+
+if frontend_dist:
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/")
+    def serve_spa_root():
+        return FileResponse(frontend_dist / "index.html")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Any API or docs request that reaches here is an unhandled endpoint -> return 404, NEVER HTML!
+        if full_path == "api" or full_path.startswith("api/") or full_path in ("docs", "openapi.json", "redoc"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+
+        file_path = frontend_dist / full_path
+        if full_path and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(frontend_dist / "index.html")
+else:
+    @app.get("/")
+    def root():
+        return {"message": "Timora API is running", "docs": "/docs"}
 
 
 if __name__ == "__main__":
