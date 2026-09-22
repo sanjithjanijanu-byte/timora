@@ -1,0 +1,18 @@
+services:
+  timora:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: timora-app
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=sqlite:////app/data/timora.db
+    volumes:
+      - timora-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  timora-data:
+    driver: local

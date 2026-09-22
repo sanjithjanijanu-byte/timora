@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: timora
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/dashboard/stats
+    envVars:
+      - key: PORT
+        value: 10000
