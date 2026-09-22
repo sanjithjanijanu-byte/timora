@@ -106,6 +106,15 @@ def generate_schedule(
     sorted_dates = sorted(exam_dates)
     sorted_slots = sorted(time_slots, key=lambda s: s.start_time)
 
+    # Load all section-specific coordinators
+    from models.subject import SubjectSectionCoordinator
+    coord_rows = db.query(SubjectSectionCoordinator).all()
+    section_coordinator_map: dict[tuple[int, int], int] = {
+        (c.subject_id, c.section_id): c.faculty_id
+        for c in coord_rows
+        if c.faculty_id
+    }
+
     # Build work items grouped by subject, then by session, then by batch
     # This ensures that all batches of a subject are scheduled cohesively
     work_items: list[tuple[int, int, int, int, int]] = []  # (section_id, batch_id, batch_size, subject_id, session_num)
@@ -123,8 +132,11 @@ def generate_schedule(
         best_candidate = None
         best_score = -999999
 
-        # Subject coordinator (assigned faculty)
-        assigned_faculty_id = subj.faculty_id if (subj and subj.faculty_id and subj.faculty_id in faculty_by_id) else None
+        # Subject coordinator: prioritize section-specific coordinator, fallback to subject default
+        target_fac_id = section_coordinator_map.get((subject_id, section_id))
+        if not target_fac_id and subj and subj.faculty_id:
+            target_fac_id = subj.faculty_id
+        assigned_faculty_id = target_fac_id if (target_fac_id and target_fac_id in faculty_by_id) else None
 
         # Search across all (date, slot) combinations
         # Multiple exams on the same day are allowed across different time slots

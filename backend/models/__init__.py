@@ -1,7 +1,7 @@
 from .department import Department
 from .class_section import Class, Section
 from .batch import Batch
-from .subject import Subject
+from .subject import Subject, SubjectSectionCoordinator
 from .laboratory import Laboratory
 from .faculty import Faculty
 from .time_slot import TimeSlot
@@ -13,6 +13,7 @@ __all__ = [
     "Section",
     "Batch",
     "Subject",
+    "SubjectSectionCoordinator",
     "Laboratory",
     "Faculty",
     "TimeSlot",

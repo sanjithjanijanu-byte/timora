@@ -19,4 +19,19 @@ class Subject(Base):
     department = relationship("Department", back_populates="subjects")
     assigned_faculty = relationship("Faculty", back_populates="subjects")
     exam_schedules = relationship("ExamSchedule", back_populates="subject")
+    section_coordinators = relationship("SubjectSectionCoordinator", back_populates="subject", cascade="all, delete-orphan")
+
+
+class SubjectSectionCoordinator(Base):
+    __tablename__ = "subject_section_coordinators"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    section_id = Column(Integer, ForeignKey("sections.id", ondelete="CASCADE"), nullable=False)
+    faculty_id = Column(Integer, ForeignKey("faculty.id", ondelete="SET NULL"), nullable=True)
+
+    # Relationships
+    subject = relationship("Subject", back_populates="section_coordinators")
+    section = relationship("Section")
+    faculty = relationship("Faculty")
 

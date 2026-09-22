@@ -784,13 +784,29 @@ export default function Classes({ initialTab }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Year / Semester</label>
-            <input
-              type="text"
-              placeholder="e.g. Year 1 / Sem 1"
+            <select
               value={classForm.year_semester}
               onChange={(e) => setClassForm({ ...classForm, year_semester: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded focus:outline-none focus:border-steel"
-            />
+              className="w-full px-3 py-2 text-sm border border-border rounded focus:outline-none focus:border-steel bg-white"
+            >
+              <option value="">Select Year / Semester</option>
+              <option value="1 Year - 1 Sem">1 Year - 1 Sem</option>
+              <option value="1 Year - 2 Sem">1 Year - 2 Sem</option>
+              <option value="2 Year - 3 Sem">2 Year - 3 Sem</option>
+              <option value="2 Year - 4 Sem">2 Year - 4 Sem</option>
+              <option value="3 Year - 5 Sem">3 Year - 5 Sem</option>
+              <option value="3 Year - 6 Sem">3 Year - 6 Sem</option>
+              <option value="4 Year - 7 Sem">4 Year - 7 Sem</option>
+              <option value="4 Year - 8 Sem">4 Year - 8 Sem</option>
+              {classForm.year_semester && ![
+                '1 Year - 1 Sem', '1 Year - 2 Sem',
+                '2 Year - 3 Sem', '2 Year - 4 Sem',
+                '3 Year - 5 Sem', '3 Year - 6 Sem',
+                '4 Year - 7 Sem', '4 Year - 8 Sem'
+              ].includes(classForm.year_semester) && (
+                <option value={classForm.year_semester}>{classForm.year_semester} (Existing)</option>
+              )}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Total Estimated Students</label>

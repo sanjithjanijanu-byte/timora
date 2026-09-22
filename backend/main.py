@@ -145,6 +145,38 @@ def seed_initial_data():
             ]
             db.add_all(default_slots)
             db.commit()
+
+        # 7. Migrate existing class year_semester format
+        cls_y1 = db.query(Class).filter(Class.year_semester == "Year 1 / Sem 1").first()
+        if cls_y1:
+            cls_y1.year_semester = "1 Year - 1 Sem"
+            db.commit()
+        cls_y2 = db.query(Class).filter(Class.year_semester == "Year 2 / Sem 3").first()
+        if cls_y2:
+            cls_y2.year_semester = "2 Year - 3 Sem"
+            db.commit()
+
+        # 8. Seed Section-specific Subject Coordinators
+        from models.subject import SubjectSectionCoordinator
+        if db.query(SubjectSectionCoordinator).count() == 0 and bca_dept:
+            bca_cls = db.query(Class).filter(Class.name == "BCA Gen AI").first()
+            if bca_cls:
+                bca_secs = db.query(Section).filter(Section.class_id == bca_cls.id).order_by(Section.name).all()
+                all_facs = db.query(Faculty).all()
+                all_subjs = db.query(Subject).filter(Subject.department_id == bca_dept.id).all()
+
+                if bca_secs and all_facs and all_subjs:
+                    # For each subject, assign distinct faculty coordinators across sections A to F
+                    for s_idx, subj in enumerate(all_subjs):
+                        for sec_idx, sec in enumerate(bca_secs):
+                            fac_idx = (s_idx * 2 + sec_idx) % len(all_facs)
+                            fac = all_facs[fac_idx]
+                            db.add(SubjectSectionCoordinator(
+                                subject_id=subj.id,
+                                section_id=sec.id,
+                                faculty_id=fac.id,
+                            ))
+                    db.commit()
     finally:
         db.close()
 

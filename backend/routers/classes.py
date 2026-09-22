@@ -121,9 +121,20 @@ def get_section_details(sec_id: int, db: Session = Depends(get_db)):
     # Get all subjects in this department
     subjects = []
     if dept_id:
+        from models.subject import SubjectSectionCoordinator
         subj_rows = db.query(Subject).filter(Subject.department_id == dept_id).all()
         for subj in subj_rows:
-            fac = subj.assigned_faculty
+            # Check for section-specific coordinator
+            coord = db.query(SubjectSectionCoordinator).filter(
+                SubjectSectionCoordinator.subject_id == subj.id,
+                SubjectSectionCoordinator.section_id == s.id
+            ).first()
+
+            if coord and coord.faculty_id and coord.faculty:
+                fac = coord.faculty
+            else:
+                fac = subj.assigned_faculty
+
             subjects.append(SubjectFacultyInfo(
                 subject_id=subj.id,
                 subject_name=subj.name,
