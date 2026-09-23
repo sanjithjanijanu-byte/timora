@@ -140,6 +140,26 @@ def generate_schedule(
         for sess in range(1, (subj.sessions_required or 1) + 1):
             for section in sections:
                 batches = db.query(Batch).filter(Batch.section_id == section.id).all()
+                if not batches and section.student_count and section.student_count > 0:
+                    # Auto-generate batches on-the-fly from section size
+                    import math
+                    b_size = max(1, min(max_batch_size, 35))
+                    num_b = math.ceil(section.student_count / b_size)
+                    per_b = math.ceil(section.student_count / num_b)
+                    new_batches = []
+                    for bi in range(1, num_b + 1):
+                        sz = min(per_b, section.student_count - (bi - 1) * per_b)
+                        if sz > 0:
+                            nb = Batch(
+                                section_id=section.id,
+                                name=f"B{bi}",
+                                size=sz,
+                            )
+                            db.add(nb)
+                            new_batches.append(nb)
+                    db.commit()
+                    batches = new_batches
+
                 for batch in batches:
                     work_items.append((section.id, batch.id, batch.size, subj.id, sess))
 
@@ -178,19 +198,31 @@ def generate_schedule(
                     continue
 
                 # Find candidate Main In-Charge
-                # Requirement: The selected coordinator for this particular class practical MUST be allotted as Main In-Charge
+                # Priority:
+                # 1. Assigned coordinator if free in this slot (gets highest +50000 score bonus)
+                # 2. Other available faculty from pool (enables parallel labs to run batches simultaneously)
                 incharge_candidates = []
+                assigned_free = False
                 if assigned_faculty_id and assigned_faculty_id in faculty_by_id:
                     fac = faculty_by_id[assigned_faculty_id]
-                    # If coordinator is occupied in this slot, skip to find a slot where coordinator is free
                     if fac.id not in faculty_schedule.get(slot_key, set()):
                         incharge_candidates.append(fac)
-                else:
-                    # Only when no coordinator was designated do we draw from the general faculty pool
+                        assigned_free = True
+
+                # Include other available faculty so simultaneous labs are not blocked
+                other_faculty = [
+                    f for f in faculty_pool
+                    if f.id not in faculty_schedule.get(slot_key, set())
+                    and f.id != (assigned_faculty_id if assigned_free else None)
+                    and faculty_load[f.id] < faculty_max.get(f.id, 5)
+                ]
+                incharge_candidates.extend(other_faculty)
+
+                # Relax load limit slightly if needed to avoid leaving exams unscheduled
+                if not incharge_candidates:
                     incharge_candidates = [
                         f for f in faculty_pool
                         if f.id not in faculty_schedule.get(slot_key, set())
-                        and faculty_load[f.id] < faculty_max.get(f.id, 5)
                     ]
 
                 if not incharge_candidates:

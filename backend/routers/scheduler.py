@@ -158,6 +158,7 @@ def delete_schedule(sched_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/schedules", status_code=204)
+@router.delete("/clear", status_code=204)
 def clear_all_schedules(db: Session = Depends(get_db)):
     """Clear all generated schedules and reset faculty loads."""
     from models.faculty import Faculty

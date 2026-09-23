@@ -2,7 +2,19 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./timora.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR)
+
+if "DATABASE_URL" in os.environ:
+    DATABASE_URL = os.environ["DATABASE_URL"]
+else:
+    root_db = os.path.join(ROOT_DIR, "timora.db")
+    backend_db = os.path.join(BASE_DIR, "timora.db")
+    if os.path.exists(root_db):
+        DATABASE_URL = f"sqlite:///{root_db.replace(os.sep, '/')}"
+    else:
+        DATABASE_URL = f"sqlite:///{backend_db.replace(os.sep, '/')}"
+
 
 # Auto-create directory for SQLite file if path includes folders (e.g. /app/data/timora.db)
 if DATABASE_URL.startswith("sqlite:////"):
